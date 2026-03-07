@@ -5,18 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.filenotmoved.user_service.enums.Role;
 import com.filenotmoved.user_service.enums.Status;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -50,16 +47,13 @@ public class User {
 
 	private String otp;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, columnDefinition = "varchar(20) default 'ACTIVE'")
 	@lombok.Builder.Default
+	@Column(nullable = false, columnDefinition = "varchar(20) default 'ACTIVE'")
 	private Status status = Status.ACTIVE;
 
 	@lombok.Builder.Default
-	@ElementCollection(fetch = FetchType.EAGER)
-	@Enumerated(EnumType.STRING)
-	@CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_phone", referencedColumnName = "phone"))
-	@Column(name = "role")
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_phone", referencedColumnName = "phone"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private List<Role> roles = new ArrayList<>();
 
 }

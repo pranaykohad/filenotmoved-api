@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.filenotmoved.user_service.enums.Role;
+import com.filenotmoved.user_service.entity.Role;
 import com.filenotmoved.user_service.enums.Status;
 
 import jakarta.validation.constraints.Email;
