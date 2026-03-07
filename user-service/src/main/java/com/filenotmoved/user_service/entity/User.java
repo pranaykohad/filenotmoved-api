@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.filenotmoved.user_service.enums.Role;
+import com.filenotmoved.user_service.enums.Status;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -46,6 +47,13 @@ public class User {
 	private String phone;
 
 	private LocalDateTime otpTimeStamp;
+
+	private String otp;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, columnDefinition = "varchar(20) default 'ACTIVE'")
+	@lombok.Builder.Default
+	private Status status = Status.ACTIVE;
 
 	@lombok.Builder.Default
 	@ElementCollection(fetch = FetchType.EAGER)
