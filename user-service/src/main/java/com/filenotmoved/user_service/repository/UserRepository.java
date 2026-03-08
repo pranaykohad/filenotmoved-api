@@ -9,17 +9,18 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.filenotmoved.user_service.entity.User;
+import com.filenotmoved.user_service.enums.Status;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
-	
+
 	User findByPhone(String phone);
 
 	void deleteByPhone(String phone);
 
-	User findByPhoneAndOtp(String phone, String otp);
+	User findByPhoneAndOtpAndStatus(String phone, String otp, Status status);
 
 	@Query("SELECT a FROM User a WHERE a.otpTimeStamp < :otpTimeStamp")
 	List<User> findByOtpDateTime(@Param("otpTimeStamp") LocalDateTime otpTimeStamp);
-	
+
 }

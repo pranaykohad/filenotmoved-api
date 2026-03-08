@@ -1,6 +1,6 @@
 package com.filenotmoved.user_service.util;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,12 +19,11 @@ import com.filenotmoved.user_service.entity.Role;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class JwtHelper {
-	
+
 	private static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
 
 	private JwtHelper() {
@@ -65,8 +64,8 @@ public class JwtHelper {
 		return Pair.of(id, token);
 	}
 
-	public static Key getSignKey() {
-		byte[] keyBytes = Decoders.BASE64.decode(SECRET);
+	public static SecretKey getSignKey() {
+		byte[] keyBytes = SECRET.getBytes();
 		return Keys.hmacShaKeyFor(keyBytes);
 	}
 
@@ -79,7 +78,7 @@ public class JwtHelper {
 	}
 
 	private static Claims extractAllClaims(String token) {
-		return Jwts.parser().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody();
+		return Jwts.parser().verifyWith(getSignKey()).build().parseSignedClaims(token).getPayload();
 	}
 
 	private static <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

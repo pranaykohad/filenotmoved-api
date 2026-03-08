@@ -37,17 +37,17 @@ public class UserController {
     }
 
     @PostMapping("login")
-    public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginReqDto appUserLoginReqDto,
+    public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginReqDto userLoginReqDto,
             Principal principal) {
 
         // Authenticate user by phone and OTP
-        userService.authenticateAppUserByOtp(appUserLoginReqDto.getPhone(), appUserLoginReqDto.getOtp());
+        userService.authenticateAppUserByOtp(userLoginReqDto.getPhone(), userLoginReqDto.getOtp());
 
         // Check is user exists and extract List<authority>
-        final User existingAppUser = userService.getExistingAppUser(appUserLoginReqDto.getPhone());
+        final User existingAppUser = userService.getExistingAppUser(userLoginReqDto.getPhone());
 
         // Create, save and add JWT token in response
-        final String tokenForAppUser = jwtService.generateTokenForAppUser(appUserLoginReqDto.getPhone(),
+        final String tokenForAppUser = jwtService.generateTokenForAppUser(userLoginReqDto.getPhone(),
                 JwtHelper.rolesToAuthorities(existingAppUser.getRoles()));
         final GenericMapper<UserDto, User> mapper = new GenericMapper<>(modelMapper, UserDto.class,
                 User.class);

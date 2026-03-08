@@ -9,6 +9,8 @@ import com.filenotmoved.user_service.enums.Status;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -48,6 +50,7 @@ public class User {
 	private String otp;
 
 	@lombok.Builder.Default
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, columnDefinition = "varchar(20) default 'ACTIVE'")
 	private Status status = Status.ACTIVE;
 

@@ -54,7 +54,7 @@ public class UserService {
 	}
 
 	public User authenticateAppUserByOtp(String phone, String otp) {
-		final User appUser = userRepository.findByPhoneAndOtp(phone, otp);
+		final User appUser = userRepository.findByPhoneAndOtpAndStatus(phone, otp, Status.ACTIVE);
 		if (appUser == null) {
 			throw new AccessDeniedException("Phone number or OTP is not correct");
 		}

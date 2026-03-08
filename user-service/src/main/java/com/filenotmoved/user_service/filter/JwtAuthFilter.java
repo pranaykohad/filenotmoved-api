@@ -1,6 +1,5 @@
 package com.filenotmoved.user_service.filter;
 
-
 import java.io.IOException;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -56,16 +55,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-		// Skip filter for public auth endpoints so login/register requests don't
-		// require a token
-		String path = request.getRequestURI();
-		String context = request.getContextPath();
-		if (context != null && !context.isEmpty() && path.startsWith(context)) {
-			path = path.substring(context.length());
-		}
-		boolean skip = path.startsWith("/api/user-auth/system/") || path.startsWith("/api/user-auth/app/")
+		String path = request.getServletPath();
+		boolean skip = path.startsWith("/api/user/login") || path.startsWith("/api/user/register")
+				|| path.startsWith("/api/user-auth/system/") || path.startsWith("/api/user-auth/app/")
 				|| path.startsWith("/api/user/kafka/") || path.startsWith("/api/user/app-info/")
-				|| path.startsWith("/api/user/verification/") || path.startsWith("/actuator");
+				|| path.startsWith("/api/user/verification/") || path.startsWith("/actuator")
+				|| path.startsWith("/user/swagger-ui") || path.startsWith("/user/api-docs");
+
+		if (skip) {
+			log.info("Skipping JWT filter for path: {}", path);
+		}
 		return skip;
 	}
 }
