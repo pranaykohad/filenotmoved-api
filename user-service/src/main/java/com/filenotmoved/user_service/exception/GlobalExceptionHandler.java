@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
 			HttpServletRequest request) {
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(),
-				"Malformed JSON request", ex.getMessage(), request.getRequestURI());
+				"Malformed JSON request", "Requested body is incompatible or malformed", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex,
 			HttpServletRequest request) {
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), "Bad Request",
-				ex.getMessage(), request.getRequestURI());
+				"Invalid argument provided", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
 	@ResponseBody
 	public ResponseEntity<ErrorResponse> handleNotFound(NoSuchElementException ex, HttpServletRequest request) {
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(), "Not Found",
-				ex.getMessage(), request.getRequestURI());
+				"The requested resource was not found", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
 	}
 
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleConflict(DataIntegrityViolationException ex,
 			HttpServletRequest request) {
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(), "Database error",
-				ex.getMostSpecificCause().getMessage(), request.getRequestURI());
+				"Data integrity violation or constraint conflict", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.CONFLICT);
 	}
 
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
 	@ResponseBody
 	public ResponseEntity<ErrorResponse> handleAll(Exception ex, HttpServletRequest request) {
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
-				"Internal Server Error", ex.getMessage(), request.getRequestURI());
+				"Internal Server Error", "An unexpected error occurred", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }

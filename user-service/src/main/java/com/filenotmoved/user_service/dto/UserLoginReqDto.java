@@ -20,32 +20,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
-
-    @Email(message = "This email ia not valid")
-    private String email;
-
-    // Do not expose internal password by default; use a separate DTO for credential
-    // operations if needed
-    private String displayName;
+public class UserLoginReqDto {
 
     @NotNull(message = "Phone cannot be null")
     @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid mobile number")
     private String phone;
 
-    private LocalDateTime otpTimeStamp;
-
+    @NotNull(message = "Otp cannot be null")
     private String otp;
-
-    @Builder.Default
-    private List<Role> roles = new ArrayList<>();
-
-    @JsonIgnore
-    private String internalPassword;
-
-    @Builder.Default
-    private Status status = Status.ACTIVE;
-
-    private String jwt;
 
 }
