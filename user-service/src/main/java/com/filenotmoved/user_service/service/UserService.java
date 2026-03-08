@@ -13,6 +13,7 @@ import com.filenotmoved.user_service.exception.custom.AccessDeniedException;
 import com.filenotmoved.user_service.exception.custom.UserAlreadyExistsException;
 import com.filenotmoved.user_service.exception.custom.UserNotFoundException;
 import com.filenotmoved.user_service.mapper.GenericMapper;
+import com.filenotmoved.user_service.repository.RoleRepository;
 import com.filenotmoved.user_service.repository.UserRepository;
 import com.filenotmoved.user_service.util.AuthTokenAndPasswordUtil;
 
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 
 	private final UserRepository userRepository;
+	private final RoleRepository roleRepository;
 	private final ModelMapper modelMapper;
 
 	public Boolean registerUser(UserDto userDto) {
@@ -35,7 +37,13 @@ public class UserService {
 		final GenericMapper<UserDto, User> mapper = new GenericMapper<>(modelMapper,
 				UserDto.class, User.class);
 		final User user = mapper.dtoToEntity(userDto);
-		user.setRoles(List.of(new Role("USER")));
+
+		Role userRole = roleRepository.findByName("USER");
+		if (userRole == null) {
+			userRole = roleRepository.save(new Role("USER"));
+		}
+
+		user.setRoles(List.of(userRole));
 		user.setInternalPassword(AuthTokenAndPasswordUtil.generatorPassword());
 		user.setStatus(Status.ACTIVE);
 		userRepository.save(user);

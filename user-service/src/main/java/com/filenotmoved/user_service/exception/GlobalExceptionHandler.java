@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -25,6 +27,8 @@ public class GlobalExceptionHandler {
 			HttpServletRequest request) {
 		String errors = ex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage)
 				.collect(Collectors.joining(", "));
+
+		log.warn("Validation failed for request [{}]: {}", request.getRequestURI(), errors);
 
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), "Validation Failed",
 				errors, request.getRequestURI());
@@ -35,6 +39,7 @@ public class GlobalExceptionHandler {
 	@ResponseBody
 	public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
 			HttpServletRequest request) {
+		log.error("Malformed JSON request [{}]: {}", request.getRequestURI(), ex.getMessage());
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(),
 				"Malformed JSON request", "Requested body is incompatible or malformed", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
@@ -44,6 +49,7 @@ public class GlobalExceptionHandler {
 	@ResponseBody
 	public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex,
 			HttpServletRequest request) {
+		log.error("Illegal argument in request [{}]: {}", request.getRequestURI(), ex.getMessage());
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), "Bad Request",
 				"Invalid argument provided", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
@@ -52,6 +58,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(NoSuchElementException.class)
 	@ResponseBody
 	public ResponseEntity<ErrorResponse> handleNotFound(NoSuchElementException ex, HttpServletRequest request) {
+		log.error("Resource not found [{}]: {}", request.getRequestURI(), ex.getMessage());
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(), "Not Found",
 				"The requested resource was not found", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
@@ -61,6 +68,7 @@ public class GlobalExceptionHandler {
 	@ResponseBody
 	public ResponseEntity<ErrorResponse> handleConflict(DataIntegrityViolationException ex,
 			HttpServletRequest request) {
+		log.error("Data integrity violation [{}]: {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(), "Database error",
 				"Data integrity violation or constraint conflict", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.CONFLICT);
@@ -69,6 +77,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
 	public ResponseEntity<ErrorResponse> handleAll(Exception ex, HttpServletRequest request) {
+		log.error("Unhandled exception in request [{}]: ", request.getRequestURI(), ex);
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
 				"Internal Server Error", "An unexpected error occurred", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
