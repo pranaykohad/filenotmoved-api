@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -72,6 +73,16 @@ public class GlobalExceptionHandler {
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.CONFLICT.value(), "Database error",
 				"Data integrity violation or constraint conflict", request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+	}
+
+	@ExceptionHandler(AuthorizationDeniedException.class)
+	@ResponseBody
+	public ResponseEntity<ErrorResponse> handleAccessDenied(AuthorizationDeniedException ex,
+			HttpServletRequest request) {
+		log.warn("Access denied for request [{}]: {}", request.getRequestURI(), ex.getMessage());
+		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.FORBIDDEN.value(), "Forbidden",
+				"You do not have permission to access this resource", request.getRequestURI());
+		return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
 	}
 
 	@ExceptionHandler(Exception.class)
