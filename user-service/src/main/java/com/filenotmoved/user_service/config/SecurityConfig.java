@@ -18,9 +18,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 
+import com.filenotmoved.user_service.filter.CsrfCookieFilter;
 import com.filenotmoved.user_service.filter.JwtAuthFilter;
 import com.filenotmoved.user_service.service.UserDetailsServiceImpl;
 
@@ -33,17 +36,23 @@ import lombok.AllArgsConstructor;
 public class SecurityConfig {
 
 	private final JwtAuthFilter jwtAuthFilter;
-//	private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf(csrf -> csrf.disable())
+		CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
+		csrfHandler.setCsrfRequestAttributeName("_csrf");
+
+		http.csrf(csrf -> csrf
+				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+				.csrfTokenRequestHandler(csrfHandler)
+				.ignoringRequestMatchers("/actuator/**", "/user/swagger-ui/**", "/user/api-docs/**",
+						"/api/user/register", "/api/user/login"))
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/actuator/**", "/user/swagger-ui/**", "/user/api-docs/**",
-							"/api/user/**")
+								"/api/user/**")
 						.permitAll().anyRequest().authenticated())
-//				.exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
-					.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class);
 		http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
@@ -59,7 +68,8 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+	AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
+			PasswordEncoder passwordEncoder) {
 		return new AuthenticationProvider() {
 			@Override
 			public Authentication authenticate(Authentication authentication) throws AuthenticationException {

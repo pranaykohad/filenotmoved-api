@@ -38,7 +38,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		String id = null;
 		if (authHeader != null && authHeader.startsWith("Bearer ")) {
 			token = authHeader.substring(7);
-			id = JwtHelper.extractUsername(token);
+			try {
+				id = JwtHelper.extractUsername(token);
+			} catch (Exception ex) {
+				log.warn("Invalid JWT token in request [{}]: {}", request.getRequestURI(), ex.getMessage());
+			}
 		}
 
 		if (id != null && SecurityContextHolder.getContext().getAuthentication() == null) {
