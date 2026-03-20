@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class IssueRequestDto {
+public class IssuesRequestDto {
 
     @NotBlank(message = "Description is required")
     private String description;
@@ -23,9 +23,6 @@ public class IssueRequestDto {
     @NotNull(message = "Issue type ID is required")
     private Long issueType;
 
-    // file will be processed separately or together depending on how we accept it
-    // Usually for multipart requests with form data we can just define fields here
-    // But since it's typically ModelAttribute for files + json, we can include file
-    // here.
+    @NotNull(message = "Issue photo is required")
     private MultipartFile photo;
 }
