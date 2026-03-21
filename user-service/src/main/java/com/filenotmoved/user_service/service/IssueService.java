@@ -114,8 +114,7 @@ public class IssueService {
             list = issuesRepository.findAll(spec, pageable);
             list.forEach(issue -> {
                 try {
-                    Object photo = awsS3Service.downloadFile(issue.getOriginalKey());
-                    issue.setOriginalImage(photo);
+                    issue.setThumbnailImage(awsS3Service.downloadFile(issue.getThumbnailKey()));
                 } catch (Exception e) {
                     log.error("Error fetching issue photo: {}", e.getMessage());
                     throw new GenericException("Error fetching issue photo");
@@ -127,6 +126,32 @@ public class IssueService {
             throw new GenericException("Error fetching issues");
         }
         return pageableEventResponse(list, spec, searchRequest.getCurrentPage());
+    }
+
+    public IssuesDto getIssueByIdAndResolution(Long issueId, String resolution) {
+        final Issues issue = issuesRepository.findById(issueId)
+                .orElseThrow(() -> new GenericException("Issue not found"));
+        final GenericMapper<IssuesDto, Issues> mapper = new GenericMapper<>(modelMapper,
+                IssuesDto.class, Issues.class);
+        final IssuesDto issuesDto = mapper.entityToDto(issue);
+        try {
+            switch (resolution) {
+                case "original":
+                    issuesDto.setOriginalImage(awsS3Service.downloadFile(issue.getOriginalKey()));
+                    break;
+                case "medium":
+                    issuesDto.setMediumImage(awsS3Service.downloadFile(issue.getMediumKey()));
+                    break;
+                case "thumbnail":
+                default:
+                    issuesDto.setThumbnailImage(awsS3Service.downloadFile(issue.getThumbnailKey()));
+                    break;
+            }
+        } catch (Exception e) {
+            log.error("Error fetching issue photo: {}", e.getMessage());
+            throw new GenericException("Error fetching issue photo");
+        }
+        return issuesDto;
     }
 
     private IssuesResponseDto pageableEventResponse(Page<Issues> pagedEventList, Specification<Issues> spec,
