@@ -3,6 +3,7 @@ package com.filenotmoved.user_service;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.annotation.PostConstruct;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 @SpringBootApplication
 @EntityScan("com.filenotmoved.user_service.entity")
 @EnableJpaRepositories("com.filenotmoved.user_service.repository")
+@EnableCaching
 @Slf4j
 public class UserServiceApplication {
 

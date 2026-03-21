@@ -3,6 +3,7 @@ package com.filenotmoved.user_service.service;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.filenotmoved.user_service.dto.UserDto;
@@ -29,6 +30,7 @@ public class UserService {
 	private final RoleRepository roleRepository;
 	private final ModelMapper modelMapper;
 
+	@Cacheable(value = "userCache", key = "#userDto.phone")
 	public Boolean registerUser(UserDto userDto) {
 		if (userRepository.existsById(userDto.getPhone())) {
 			log.error("User with phone {} already exists in the system ", userDto.getPhone());
@@ -73,6 +75,7 @@ public class UserService {
 		return userRepository.findAll();
 	}
 
+	@Cacheable(value = "userCache", key = "#p0")
 	public User getExistingActiveAppUser(String phoneNumber) {
 		try {
 			final User user = userRepository.findByPhoneAndStatus(phoneNumber, Status.ACTIVE);

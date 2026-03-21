@@ -29,7 +29,7 @@ public class IssueController {
     private final UserService userService;
 
     @PreAuthorize("hasRole('USER')")
-    @PostMapping("post")
+    @PostMapping("add-issue")
     public ResponseEntity<IssuesDto> postIssue(@Valid @ModelAttribute IssuesRequestDto requestDto,
             @Valid @RequestParam String phoneNumber) {
         userService.getExistingActiveAppUser(phoneNumber);
@@ -38,7 +38,7 @@ public class IssueController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @PostMapping("photo")
+    @PostMapping("get-issue")
     public ResponseEntity<IssuesResponseDto> getIssues(@RequestBody SearchRequest searchRequest,
             @Valid @RequestParam String phoneNumber) {
         userService.getExistingActiveAppUser(phoneNumber);
