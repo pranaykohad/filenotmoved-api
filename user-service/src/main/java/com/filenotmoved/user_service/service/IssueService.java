@@ -1,8 +1,8 @@
 package com.filenotmoved.user_service.service;
 
-import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,15 +11,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.filenotmoved.user_service.dto.IssuesRequestDto;
-import com.filenotmoved.user_service.dto.IssuesResponseDto;
+import com.filenotmoved.user_service.constant.CommonConstants;
 import com.filenotmoved.user_service.constant.TableConfig;
 import com.filenotmoved.user_service.dto.ColumnConfigDto;
 import com.filenotmoved.user_service.dto.IssuesDto;
 import com.filenotmoved.user_service.dto.IssuesPage;
+import com.filenotmoved.user_service.dto.IssuesRequestDto;
+import com.filenotmoved.user_service.dto.IssuesResponseDto;
 import com.filenotmoved.user_service.dto.SearchRequest;
 import com.filenotmoved.user_service.entity.Issues;
+import com.filenotmoved.user_service.exception.custom.FileSizeExceedsException;
 import com.filenotmoved.user_service.exception.custom.GenericException;
 import com.filenotmoved.user_service.mapper.GenericMapper;
 import com.filenotmoved.user_service.repository.IssuesRepository;
@@ -43,29 +46,37 @@ public class IssueService {
     @Value("${aws.s3.folder-name.issues}")
     private String issueFolderName;
 
-    public Issues createIssue(IssuesRequestDto requestDto) {
-        log.info("Creating new issue in city: {}", requestDto.getCity());
+    public IssuesDto createIssue(IssuesRequestDto requestDto) {
+        log.info("Creating new issue in city, locality: {}, {}", requestDto.getCity(), requestDto.getLocality());
 
-        String imageKey = null;
-        if (requestDto.getPhoto() != null && !requestDto.getPhoto().isEmpty()) {
-            String fileName = UUID.randomUUID().toString();
-            imageKey = awsS3Service.uploadFile(requestDto.getPhoto(), issueFolderName, fileName);
+        final MultipartFile photo = requestDto.getPhoto();
+
+        if (!CommonConstants.VALID_IMAGE_FORMAT
+                .contains(photo.getOriginalFilename().substring(photo.getOriginalFilename().lastIndexOf(".") + 1))
+                || photo.getSize() > CommonConstants.MAX_IMAGE_SIZE) {
+            throw new FileSizeExceedsException("File size exceeds or invalid format");
+        }
+
+        String fileName = UUID.randomUUID().toString();
+        try {
+            final String imageKey = awsS3Service.uploadFile(requestDto.getPhoto(), issueFolderName, fileName);
             log.info("Uploaded issue photo to S3 with key: {}", imageKey);
 
-            Issues issue = Issues.builder()
+            final Issues issue = Issues.builder()
                     .description(requestDto.getDescription())
-                    .location(requestDto.getLocation())
+                    .location(Helper.parseLocation(requestDto.getLocation()))
                     .locality(requestDto.getLocality())
                     .city(requestDto.getCity())
                     .issueType(requestDto.getIssueType())
                     .imageKey(imageKey)
                     .build();
 
-            Issues savedIssue = issuesRepository.save(issue);
+            final Issues savedIssue = issuesRepository.save(issue);
             log.info("Issue created successfully with ID: {}", savedIssue.getId());
-            return savedIssue;
-        } else {
-            throw new IllegalArgumentException("Photo is required");
+            return Helper.issueEntityToDto(savedIssue);
+        } catch (Exception e) {
+            log.error("Error creating issue: {}", e.getMessage());
+            throw new GenericException("Error creating issue");
         }
     }
 

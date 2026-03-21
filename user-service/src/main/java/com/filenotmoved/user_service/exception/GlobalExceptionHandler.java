@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.filenotmoved.user_service.exception.custom.GenericException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -90,7 +92,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleAll(Exception ex, HttpServletRequest request) {
 		log.error("Unhandled exception in request [{}]: ", request.getRequestURI(), ex);
 		ErrorResponse body = new ErrorResponse(LocalDateTime.now(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
-				"Internal Server Error", "An unexpected error occurred", request.getRequestURI());
+				"Internal Server Error", ex.getMessage(), request.getRequestURI());
 		return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
 }

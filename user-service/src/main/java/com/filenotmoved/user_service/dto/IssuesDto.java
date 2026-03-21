@@ -2,6 +2,8 @@ package com.filenotmoved.user_service.dto;
 
 import java.time.LocalDateTime;
 
+import org.locationtech.jts.geom.Point;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

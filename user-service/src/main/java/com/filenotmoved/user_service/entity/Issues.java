@@ -2,6 +2,11 @@ package com.filenotmoved.user_service.entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.filenotmoved.user_service.util.PointSerializer;
+
+import org.locationtech.jts.geom.Point;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,8 +39,8 @@ public class Issues {
     @Column(length = 1000)
     private String description;
 
-    @Column(nullable = false)
-    private String location;
+    @Column(nullable = false, columnDefinition = "geometry")
+    private Point location;
 
     @Column(nullable = false)
     private String locality;
