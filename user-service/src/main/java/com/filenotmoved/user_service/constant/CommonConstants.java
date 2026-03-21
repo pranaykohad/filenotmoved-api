@@ -13,6 +13,6 @@ public class CommonConstants {
 
 	public static final int PAGE_SIZE = 20;
 
-	public static final long MAX_IMAGE_SIZE = 5242880; // 5 MB = 5242880
+	public static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 }

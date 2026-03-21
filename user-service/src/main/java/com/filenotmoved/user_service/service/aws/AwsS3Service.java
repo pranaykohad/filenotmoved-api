@@ -37,7 +37,7 @@ public class AwsS3Service {
     public String uploadFile(MultipartFile file, String folderName, String fileName) {
         final String key = folderName + "/" + fileName + "." + Helper.getFileExtension(file.getOriginalFilename());
         try {
-            Helper.validateBlob(file.getOriginalFilename(), file.getSize());
+            Helper.validateFile(file.getOriginalFilename(), file.getSize());
             final ListObjectsV2Response imageList = s3Client.listObjectsV2(
                     ListObjectsV2Request.builder().bucket(bucketName).prefix(folderName + "/" + fileName).build());
             imageList.contents().stream().filter(image -> {

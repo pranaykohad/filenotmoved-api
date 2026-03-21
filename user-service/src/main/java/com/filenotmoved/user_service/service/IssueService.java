@@ -50,14 +50,7 @@ public class IssueService {
         log.info("Creating new issue in city, locality: {}, {}", requestDto.getCity(), requestDto.getLocality());
 
         final MultipartFile issuePhoto = requestDto.getPhoto();
-
-        if (!CommonConstants.VALID_IMAGE_FORMAT
-                .contains(issuePhoto.getOriginalFilename()
-                        .substring(issuePhoto.getOriginalFilename().lastIndexOf(".") + 1))
-                || issuePhoto.getSize() > CommonConstants.MAX_IMAGE_SIZE) {
-            throw new FileSizeExceedsException("File size exceeds or invalid format");
-        }
-
+        Helper.validateFile(issuePhoto.getOriginalFilename(), issuePhoto.getSize());
         String fileName = UUID.randomUUID().toString();
         try {
             final String imageKey = awsS3Service.uploadFile(requestDto.getPhoto(), issueFolderName, fileName);

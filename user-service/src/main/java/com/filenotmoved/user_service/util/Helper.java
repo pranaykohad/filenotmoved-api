@@ -38,7 +38,7 @@ public final class Helper {
 		return phone.length() == 10 && phone.chars().allMatch(Character::isDigit);
 	}
 
-	public static void validateBlob(String originalFileName, long fileSize) {
+	public static void validateFile(String originalFileName, long fileSize) {
 		if (!isValidFormat(originalFileName)) {
 			throw new InvalidFileFormatException("File format is not correct: " + originalFileName);
 		}
