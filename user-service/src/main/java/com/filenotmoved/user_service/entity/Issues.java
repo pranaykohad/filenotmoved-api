@@ -58,11 +58,26 @@ public class Issues {
     @Column(name = "issue_type", nullable = false)
     private Long issueType;
 
-    @Column(name = "image_key")
-    private String imageKey;
+    @Column(name = "image_id", nullable = false)
+    private String imageId;
+
+    @Column(name = "original_key")
+    private String originalKey;
+
+    @Column(name = "medium_key")
+    private String mediumKey;
+
+    @Column(name = "thumbnail_key")
+    private String thumbnailKey;
 
     @Transient
-    private Object image;
+    private Object originalImage;
+
+    @Transient
+    private Object mediumImage;
+
+    @Transient
+    private Object thumbnailImage;
 
     @PrePersist
     public void prePersist() {

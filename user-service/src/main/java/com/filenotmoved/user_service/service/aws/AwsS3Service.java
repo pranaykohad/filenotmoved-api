@@ -1,28 +1,25 @@
 package com.filenotmoved.user_service.service.aws;
 
-import java.io.IOException;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.filenotmoved.user_service.exception.custom.GenericException;
 import com.filenotmoved.user_service.exception.custom.InvalidFileFormatException;
-import com.filenotmoved.user_service.util.Helper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.core.ResponseBytes;
 
 @Service
 @RequiredArgsConstructor
@@ -34,10 +31,28 @@ public class AwsS3Service {
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public String uploadFile(MultipartFile file, String folderName, String fileName) {
-        final String key = folderName + "/" + fileName + "." + Helper.getFileExtension(file.getOriginalFilename());
+    public String addFile(byte[] bytes, String extension, String contentType, String folderName, String fileName,
+            String type) {
+        final String key = folderName + "/" + fileName + "_" + type + "." + extension;
         try {
-            Helper.validateFile(file.getOriginalFilename(), file.getSize());
+            s3Client.putObject(
+                    PutObjectRequest.builder().bucket(bucketName).key(key).contentType(contentType).build(),
+                    RequestBody.fromBytes(bytes));
+            log.info("file: {} is added in AWS S3 bucket", key);
+        } catch (S3Exception e) {
+            log.error("S3 Bucket configuration error: {}", e.getMessage());
+            throw new GenericException("Not able to upload file in System. Please contact system administrator.");
+        } catch (InvalidFileFormatException ex) {
+            log.error("InvalidFileFormatException while uploading file to AWS S3: {}", ex.getMessage());
+            throw new GenericException("File format is not correct: " + fileName);
+        }
+        return key;
+    }
+
+    public String addOrReplaceFile(byte[] bytes, String extension, String contentType, String folderName,
+            String fileName) {
+        final String key = folderName + "/" + fileName + "." + extension;
+        try {
             final ListObjectsV2Response imageList = s3Client.listObjectsV2(
                     ListObjectsV2Request.builder().bucket(bucketName).prefix(folderName + "/" + fileName).build());
             imageList.contents().stream().filter(image -> {
@@ -58,18 +73,15 @@ public class AwsS3Service {
 
             log.info("Uploading file to AWS S3 bucket: {}", key);
             s3Client.putObject(
-                    PutObjectRequest.builder().bucket(bucketName).key(key).contentType(file.getContentType()).build(),
-                    RequestBody.fromBytes(file.getBytes()));
+                    PutObjectRequest.builder().bucket(bucketName).key(key).contentType(contentType).build(),
+                    RequestBody.fromBytes(bytes));
             log.info("file: {} is uploaded/replaced in AWS S3 bucket", key);
         } catch (S3Exception e) {
             log.error("S3 Bucket configuration error: {}", e.getMessage());
             throw new GenericException("Not able to upload file in System. Please contact system administrator.");
-        } catch (IOException e) {
-            log.error("IOException while uploading file to AWS S3: {}", e.getMessage());
-            throw new GenericException("Error while uploading file on AWS s3 for system user");
         } catch (InvalidFileFormatException ex) {
             log.error("InvalidFileFormatException while uploading file to AWS S3: {}", ex.getMessage());
-            throw new GenericException("File format is not correct: " + file.getOriginalFilename());
+            throw new GenericException("File format is not correct: " + fileName);
         }
         return key;
     }

@@ -27,6 +27,10 @@ public class IssuesDto {
 
     private Long issueType;
 
-    private Object image;
+    private Object originalImage;
+
+    private Object mediumImage;
+
+    private Object thumbnailImage;
 
 }

@@ -99,7 +99,8 @@ public final class Helper {
 		return new IssuesDto(issue.getId(), issue.getDescription(),
 				issue.getLocation().getY() + "," + issue.getLocation().getX(), issue.getLocality(), issue.getCity(),
 				issue.getCreatedBy(),
-				issue.getCreateAt(), issue.getIssueType(), issue.getImageKey());
+				issue.getCreateAt(), issue.getIssueType(), issue.getOriginalImage(), issue.getMediumImage(),
+				issue.getThumbnailImage());
 	}
 
 }

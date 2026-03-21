@@ -1,5 +1,6 @@
 package com.filenotmoved.user_service.service;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +29,7 @@ import com.filenotmoved.user_service.mapper.GenericMapper;
 import com.filenotmoved.user_service.repository.IssuesRepository;
 import com.filenotmoved.user_service.service.aws.AwsS3Service;
 import com.filenotmoved.user_service.util.Helper;
+import com.filenotmoved.user_service.util.ImageUtil;
 import com.filenotmoved.user_service.util.UserSpecificationHelper;
 
 import io.jsonwebtoken.lang.Arrays;
@@ -52,25 +54,47 @@ public class IssueService {
         final MultipartFile issuePhoto = requestDto.getPhoto();
         Helper.validateFile(issuePhoto.getOriginalFilename(), issuePhoto.getSize());
         String fileName = UUID.randomUUID().toString();
+        String extension = Helper.getFileExtension(issuePhoto.getOriginalFilename());
+        String folderName = issueFolderName + "/" + fileName;
         try {
-            final String imageKey = awsS3Service.uploadFile(requestDto.getPhoto(), issueFolderName, fileName);
-            log.info("Uploaded issue photo to S3 with key: {}", imageKey);
+
+            final byte[] originalBytes = requestDto.getPhoto().getBytes();
+
+            final byte[] mediumBytes = ImageUtil.resizeImage(
+                    new ByteArrayInputStream(originalBytes), 1024, 1024);
+
+            final byte[] thumbBytes = ImageUtil.resizeImage(
+                    new ByteArrayInputStream(originalBytes), 300, 300);
+
+            final String originalImageKey = awsS3Service.addFile(originalBytes, extension, issuePhoto.getContentType(),
+                    folderName, fileName, "original");
+            final String mediumImageKey = awsS3Service.addFile(mediumBytes, extension, issuePhoto.getContentType(),
+                    folderName, fileName, "medium");
+            final String thumbImageKey = awsS3Service.addFile(thumbBytes, extension, issuePhoto.getContentType(),
+                    folderName, fileName, "thumb");
+
+            log.info("Uploaded issue photo to S3 with key: {}", originalImageKey);
+            log.info("Uploaded issue photo to S3 with key: {}", mediumImageKey);
+            log.info("Uploaded issue photo to S3 with key: {}", thumbImageKey);
 
             final Issues issue = Issues.builder()
                     .description(requestDto.getDescription())
                     .location(Helper.parseLocation(requestDto.getLocation()))
                     .locality(requestDto.getLocality())
                     .city(requestDto.getCity())
+                    .imageId(fileName)
                     .issueType(requestDto.getIssueType())
-                    .imageKey(imageKey)
+                    .originalKey(originalImageKey)
+                    .mediumKey(mediumImageKey)
+                    .thumbnailKey(thumbImageKey)
                     .build();
 
             final Issues savedIssue = issuesRepository.save(issue);
             final IssuesDto issuesDto = Helper.issueEntityToDto(savedIssue);
             log.info("Issue created successfully with ID: {}", savedIssue.getId());
             try {
-                Object photo = awsS3Service.downloadFile(savedIssue.getImageKey());
-                issuesDto.setImage(photo);
+                Object photo = awsS3Service.downloadFile(savedIssue.getThumbnailKey());
+                issuesDto.setThumbnailImage(photo);
             } catch (Exception e) {
                 log.error("Error fetching issue photo: {}", e.getMessage());
                 throw new GenericException("Error fetching issue photo");
@@ -90,8 +114,8 @@ public class IssueService {
             list = issuesRepository.findAll(spec, pageable);
             list.forEach(issue -> {
                 try {
-                    Object photo = awsS3Service.downloadFile(issue.getImageKey());
-                    issue.setImage(photo);
+                    Object photo = awsS3Service.downloadFile(issue.getOriginalKey());
+                    issue.setOriginalImage(photo);
                 } catch (Exception e) {
                     log.error("Error fetching issue photo: {}", e.getMessage());
                     throw new GenericException("Error fetching issue photo");
