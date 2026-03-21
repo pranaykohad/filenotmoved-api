@@ -73,4 +73,17 @@ public class UserService {
 		return userRepository.findAll();
 	}
 
+	public User getExistingActiveAppUser(String phoneNumber) {
+		try {
+			final User user = userRepository.findByPhoneAndStatus(phoneNumber, Status.ACTIVE);
+			if (user == null) {
+				throw new UserNotFoundException("User doesnot exists in the system");
+			}
+			return user;
+		} catch (Exception e) {
+			log.error("Error fetching user: {}", e.getMessage());
+			throw new UserNotFoundException("User doesnot exists in the system");
+		}
+	}
+
 }

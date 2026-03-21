@@ -23,4 +23,6 @@ public interface UserRepository extends JpaRepository<User, String> {
 	@Query("SELECT a FROM User a WHERE a.otpTimeStamp < :otpTimeStamp")
 	List<User> findByOtpDateTime(@Param("otpTimeStamp") LocalDateTime otpTimeStamp);
 
+	User findByPhoneAndStatus(String phone, Status status);
+
 }

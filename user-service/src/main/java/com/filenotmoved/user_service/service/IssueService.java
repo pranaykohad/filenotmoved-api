@@ -49,11 +49,12 @@ public class IssueService {
     public IssuesDto createIssue(IssuesRequestDto requestDto) {
         log.info("Creating new issue in city, locality: {}, {}", requestDto.getCity(), requestDto.getLocality());
 
-        final MultipartFile photo = requestDto.getPhoto();
+        final MultipartFile issuePhoto = requestDto.getPhoto();
 
         if (!CommonConstants.VALID_IMAGE_FORMAT
-                .contains(photo.getOriginalFilename().substring(photo.getOriginalFilename().lastIndexOf(".") + 1))
-                || photo.getSize() > CommonConstants.MAX_IMAGE_SIZE) {
+                .contains(issuePhoto.getOriginalFilename()
+                        .substring(issuePhoto.getOriginalFilename().lastIndexOf(".") + 1))
+                || issuePhoto.getSize() > CommonConstants.MAX_IMAGE_SIZE) {
             throw new FileSizeExceedsException("File size exceeds or invalid format");
         }
 
@@ -72,8 +73,16 @@ public class IssueService {
                     .build();
 
             final Issues savedIssue = issuesRepository.save(issue);
+            final IssuesDto issuesDto = Helper.issueEntityToDto(savedIssue);
             log.info("Issue created successfully with ID: {}", savedIssue.getId());
-            return Helper.issueEntityToDto(savedIssue);
+            try {
+                Object photo = awsS3Service.downloadFile(savedIssue.getImageKey());
+                issuesDto.setImage(photo);
+            } catch (Exception e) {
+                log.error("Error fetching issue photo: {}", e.getMessage());
+                throw new GenericException("Error fetching issue photo");
+            }
+            return issuesDto;
         } catch (Exception e) {
             log.error("Error creating issue: {}", e.getMessage());
             throw new GenericException("Error creating issue");
