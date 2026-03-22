@@ -102,7 +102,7 @@ public class IssueService {
             return issuesDto;
         } catch (Exception e) {
             log.error("Error creating issue: {}", e.getMessage());
-            throw new GenericException("Error creating issue");
+            throw new GenericException("Error creating issue: " + e.getMessage());
         }
     }
 
