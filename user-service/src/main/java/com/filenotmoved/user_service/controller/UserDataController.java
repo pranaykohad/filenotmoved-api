@@ -1,5 +1,6 @@
 package com.filenotmoved.user_service.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -26,7 +27,8 @@ public class UserDataController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("all")
-    public ResponseEntity<List<UserDto>> getAllUsers() {
+    public ResponseEntity<List<UserDto>> getAllUsers(Principal principal) {
+        userService.getExistingActiveAppUser(principal.getName());
         final GenericMapper<UserDto, User> mapper = new GenericMapper<>(modelMapper, UserDto.class, User.class);
         final List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(mapper.entityToDto(users));
