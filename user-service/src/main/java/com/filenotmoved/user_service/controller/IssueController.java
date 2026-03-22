@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.filenotmoved.user_service.dto.IssuesDto;
@@ -43,9 +44,12 @@ public class IssueController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("get-issue")
     public ResponseEntity<IssuesResponseDto> getIssues(@RequestBody SearchRequest searchRequest,
-            Principal principal) {
+            @RequestParam(required = false, defaultValue = "0") double lat,
+            @RequestParam(required = false, defaultValue = "0") double lng,
+            @RequestParam(required = false, defaultValue = "500") double radius, Principal principal) {
         userService.getExistingActiveAppUser(principal.getName());
-        return new ResponseEntity<>(issueService.getIssues(searchRequest), HttpStatus.OK);
+        // radius in meters
+        return new ResponseEntity<>(issueService.getIssues(searchRequest, lat, lng, radius), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('USER')")

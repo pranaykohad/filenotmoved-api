@@ -12,9 +12,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.filenotmoved.user_service.constant.CommonConstants;
 import com.filenotmoved.user_service.constant.TableConfig;
 import com.filenotmoved.user_service.dto.ColumnConfigDto;
 import com.filenotmoved.user_service.dto.IssuesDto;
@@ -23,7 +23,6 @@ import com.filenotmoved.user_service.dto.IssuesRequestDto;
 import com.filenotmoved.user_service.dto.IssuesResponseDto;
 import com.filenotmoved.user_service.dto.SearchRequest;
 import com.filenotmoved.user_service.entity.Issues;
-import com.filenotmoved.user_service.exception.custom.FileSizeExceedsException;
 import com.filenotmoved.user_service.exception.custom.GenericException;
 import com.filenotmoved.user_service.mapper.GenericMapper;
 import com.filenotmoved.user_service.repository.IssuesRepository;
@@ -106,12 +105,16 @@ public class IssueService {
         }
     }
 
-    public IssuesResponseDto getIssues(SearchRequest searchRequest) {
+    public IssuesResponseDto getIssues(SearchRequest searchRequest, double lat, double lng, double radius) {
         final Pageable pageable = Helper.buildPage(searchRequest);
         final Specification<Issues> spec = UserSpecificationHelper.buildSpecification(searchRequest.getSearchFilters());
         Page<Issues> list = new PageImpl<>(new ArrayList<>());
         try {
-            list = issuesRepository.findAll(spec, pageable);
+            if (lat != 0 && lng != 0 && radius != 0) {
+                list = issuesRepository.findNearbyIssues(lat, lng, radius, pageable);
+            } else {
+                list = issuesRepository.findAll(spec, pageable);
+            }
             list.forEach(issue -> {
                 try {
                     issue.setThumbnailImage(awsS3Service.downloadFile(issue.getThumbnailKey()));

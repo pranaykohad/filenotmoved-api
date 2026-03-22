@@ -9,7 +9,7 @@ public class CommonConstants {
 	}
 
 	public static final List<String> VALID_IMAGE_FORMAT = new ArrayList<>(
-			List.of("jpg", "jpeg", "png", "heic", "webp"));
+			List.of("jpg", "jpeg", "png", "heic", "webp", "avif"));
 
 	public static final int PAGE_SIZE = 20;
 
