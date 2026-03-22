@@ -46,7 +46,7 @@ public class SecurityConfig {
 				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 				.csrfTokenRequestHandler(csrfHandler)
 				.ignoringRequestMatchers("/actuator/**", "/user/swagger-ui/**", "/user/api-docs/**",
-						"/api/user/register", "/api/user/login", "/api/issues/**"))
+						"/api/**"))
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/actuator/**", "/user/swagger-ui/**", "/user/api-docs/**",
 								"/api/user/**")

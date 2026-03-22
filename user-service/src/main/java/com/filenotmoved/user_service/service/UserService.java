@@ -28,6 +28,7 @@ public class UserService {
 
 	private final UserRepository userRepository;
 	private final RoleRepository roleRepository;
+	private final OtpService otpService;
 	private final ModelMapper modelMapper;
 
 	@Cacheable(value = "userCache", key = "#userDto.phone")
@@ -49,9 +50,14 @@ public class UserService {
 		user.setInternalPassword(AuthTokenAndPasswordUtil.generatorPassword());
 		user.setStatus(Status.ACTIVE);
 		userRepository.save(user);
-		// otpService.createOtpForAppUser(appUser);
+		// otpService.createAndOtpOnDevice(userDto.getPhone());
 		log.info("User {} with phone is register in the system ", userDto.getDisplayName(),
 				userDto.getPhone());
+		return true;
+	}
+
+	public boolean sendOtp(String phone) {
+		otpService.createAndOtpOnDevice(phone);
 		return true;
 	}
 

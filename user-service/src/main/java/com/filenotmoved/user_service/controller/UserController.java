@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.filenotmoved.user_service.dto.UserDto;
@@ -36,6 +37,12 @@ public class UserController {
         return ResponseEntity.ok(userService.registerUser(userDto));
     }
 
+    @GetMapping("send-otp")
+    public ResponseEntity<Boolean> sendOtp(@Valid @RequestParam String phone) {
+        userService.getExistingActiveAppUser(phone);
+        return ResponseEntity.ok(userService.sendOtp(phone));
+    }
+
     @PostMapping("login")
     public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginReqDto userLoginReqDto,
             Principal principal) {
@@ -44,7 +51,7 @@ public class UserController {
         userService.authenticateAppUserByOtp(userLoginReqDto.getPhone(), userLoginReqDto.getOtp());
 
         // Check is user exists and extract List<authority>
-        final User existingAppUser = userService.getExistingAppUser(userLoginReqDto.getPhone());
+        final User existingAppUser = userService.getExistingActiveAppUser(userLoginReqDto.getPhone());
 
         // Create, save and add JWT token in response
         final String tokenForAppUser = jwtService.generateTokenForAppUser(userLoginReqDto.getPhone(),
@@ -56,7 +63,7 @@ public class UserController {
         return ResponseEntity.ok(apppUserResponseDto);
     }
 
-    @GetMapping("loggedin-user-info")
+    @GetMapping("me")
     public ResponseEntity<UserDto> getLoggedinAppUserInfo(Principal principal) {
         if (principal != null) {
             final GenericMapper<UserDto, User> mapper = new GenericMapper<>(modelMapper,
